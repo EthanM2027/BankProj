@@ -142,11 +142,11 @@ int bank::account_count = 1000; // starting account number
 
 int main()
 {
-    //cout << "Branch Test\n";
+    cout << "Branch for saving info to a file\n";
     int selection;
     bank obj;
     vector<bank> accounts;
-    
+
     cout << "Welcome to the Bank System\n";
     cout << "-----------------------------------\n";
     do 
