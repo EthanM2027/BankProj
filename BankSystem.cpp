@@ -85,6 +85,21 @@ void bank :: open_account()
     cout << "Your account has been created \n";
 
 }
+
+void bank :: withdraw_money()
+{
+    amount = 0.0;
+    cout << "Enter amount to withdraw: ";
+    cin >> amount;
+    temp = stof(balance);
+    
+    ostringstream stream;
+    stream << fixed << setprecision(2) << (temp - amount);
+    balance = stream.str();
+
+    cout << "Now total amount left: " << balance;
+}
+
 void bank :: deposit_money()
 {
     amount = 0.0;
@@ -97,8 +112,6 @@ void bank :: deposit_money()
     stream << fixed << setprecision(2) << (temp + amount);
     balance = stream.str();
 
-    //balance =  to_string(temp + amount);
-    
     cout << "New total amount: " << balance;
 }
 void bank :: display_account()
@@ -118,19 +131,7 @@ void bank :: display_account()
     cout << "Amount balance: \t" << balance << endl;
     cout << "#############################################" << endl;
 }
-void bank :: withdraw_money()
-{
-    amount = 0.0;
-    cout << "\nWithdraw: \n";
-    cout << "Enter amount to withdraw: ";
-    cin >> amount;
-    temp = stof(balance);
-    
-    cout << fixed << setprecision(2); // Set formatting for float
-    balance =  to_string(temp - amount);
 
-    cout << "Now total amount left: " << balance;
-}
 
 void bank :: save_to_file(ofstream& outfile) const 
 {
