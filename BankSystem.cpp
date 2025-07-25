@@ -28,6 +28,7 @@ class bank
         void display_account();
         void save_to_file(ofstream& outfile) const;
         void load_from_file(ifstream& infile);
+        static void load_accounts(vector<bank>& accounts);
         int get_account_number() const { return account_number; }
 };
 
@@ -188,23 +189,37 @@ bank* find_account(vector<bank>& accounts, int acct_num) {
     return nullptr;
 }
 
+void bank :: load_accounts(vector<bank>& accounts) {
+    ifstream infile("accounts.txt");
+    int highest = 999;
+    while (infile.peek() != EOF) {
+        bank acc;
+        acc.load_from_file(infile);
+        if (acc.get_account_number() > highest)
+            highest = acc.get_account_number();
+        accounts.push_back(acc);
+    }
+    infile.close();
+    bank::account_count = highest + 1;
+}
+
 int bank::account_count = 1000; // starting account number
 
 int main()
 {
-    cout << "Branch for saving info to a file\n";
     int selection;
     bank obj;
     vector<bank> accounts;
 
-    // Load existing accounts from file
+    /*Load existing accounts from file
     ifstream infile("accounts.txt");
     while (infile.peek() != EOF) {
         bank acc;
         acc.load_from_file(infile);
         accounts.push_back(acc);
     }
-    infile.close();
+    infile.close();*/
+    bank :: load_accounts(accounts);
 
     cout << "Welcome to the Bank System\n";
     cout << "-----------------------------------\n";
