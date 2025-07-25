@@ -1,10 +1,12 @@
 #include <stdio.h>
 #include <iostream>
 #include <string>
+#include <cstring>
 #include <iomanip>
 #include <sstream>  // for ostringstream
 #include <limits> // for numeric_limits
 #include <vector>
+#include <fstream> // for file operations
 
 
 // This is the branch file for the Bank System project
@@ -24,6 +26,8 @@ class bank
         void deposit_money();
         void withdraw_money();
         void display_account();
+        void save_to_file(ofstream& outfile) const;
+        void load_from_file(ifstream& infile);
         int get_account_number() const { return account_number; }
 };
 
@@ -127,6 +131,52 @@ void bank :: withdraw_money()
     cout << "Now total amount left: " << balance;
 }
 
+void bank :: save_to_file(ofstream& outfile) const 
+{
+    outfile << account_number << '|'
+            << name << '|'
+            << address << '|'
+            << acc_type << '|'
+            << balance << '|';
+    outfile << "###END###\n"; // End of record marker
+    // Using '|' as a delimiter for fields
+}
+
+void bank :: load_from_file(ifstream& infile) 
+{
+    string line;
+    getline(infile, line);
+
+    if(line.empty() || line == "###END###") return; // Skip empty lines or end markers
+    
+    stringstream ss(line);
+    string token;
+
+    // Read account number
+    getline(ss, token, '|');
+    account_number = stoi(token);
+
+    // Read name
+    getline(ss, token, '|');
+    strncpy(name, token.c_str(), sizeof(name));
+    name[sizeof(name) - 1] = '\0'; // Ensure null termination
+
+    // Read address
+    getline(ss, token, '|');
+    strncpy(address, token.c_str(), sizeof(address));
+    address[sizeof(address) - 1] = '\0'; // Ensure null termination
+
+    // Read account type
+    getline(ss, token, '|');
+    acc_type = token[0]; // Assuming single character for account type
+
+    // Read balance
+    getline(ss, balance, '|');
+
+    // Consume the END marker
+    getline(infile, line);
+}
+
 // Function to find an account by account number
 // Returns a pointer to the account if found, otherwise returns nullptr
 bank* find_account(vector<bank>& accounts, int acct_num) {
@@ -146,6 +196,15 @@ int main()
     int selection;
     bank obj;
     vector<bank> accounts;
+
+    // Load existing accounts from file
+    ifstream infile("accounts.txt");
+    while (infile.peek() != EOF) {
+        bank acc;
+        acc.load_from_file(infile);
+        accounts.push_back(acc);
+    }
+    infile.close();
 
     cout << "Welcome to the Bank System\n";
     cout << "-----------------------------------\n";
@@ -181,6 +240,12 @@ int main()
         else if (selection == 5) 
         {
             cout << "Goodbye\n";
+            ofstream outfile("accounts.txt");
+            for (const auto& acc : accounts) 
+            {
+                acc.save_to_file(outfile);
+            }
+            outfile.close();
         } 
         else 
         {
