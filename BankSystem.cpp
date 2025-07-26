@@ -27,7 +27,7 @@ class bank
         void withdraw_money();
         void display_account();
         void save_to_file(ofstream& outfile) const;
-        void load_from_file(ifstream& infile);
+        bool load_from_file(ifstream& infile);
         static void load_accounts(vector<bank>& accounts);
         int get_account_number() const { return account_number; }
 };
@@ -139,17 +139,17 @@ void bank :: save_to_file(ofstream& outfile) const
             << name << '|'
             << address << '|'
             << acc_type << '|'
-            << balance << '|';
+            << balance << '\n';
     outfile << "###END###\n"; // End of record marker
     // Using '|' as a delimiter for fields
 }
 
-void bank :: load_from_file(ifstream& infile) 
+bool bank :: load_from_file(ifstream& infile) 
 {
     string line;
     getline(infile, line);
 
-    if(line.empty() || line == "###END###") return; // Skip empty lines or end markers
+    if(line.empty() || line == "###END###") return false; // Skip empty lines or end markers
     
     stringstream ss(line);
     string token;
@@ -170,20 +170,32 @@ void bank :: load_from_file(ifstream& infile)
 
     // Read account type
     getline(ss, token, '|');
-    acc_type = token[0]; // Assuming single character for account type
+    if (!token.empty()) 
+    {
+        acc_type = token[0];
+    } 
+    else 
+    {
+        acc_type = ' '; // Or some default value
+    }
 
     // Read balance
     getline(ss, balance, '|');
 
     // Consume the END marker
     getline(infile, line);
+
+    return true; // Successfully loaded the account
 }
 
 // Function to find an account by account number
 // Returns a pointer to the account if found, otherwise returns nullptr
-bank* find_account(vector<bank>& accounts, int acct_num) {
-    for (auto& acc : accounts) {
-        if (acc.get_account_number() == acct_num) {
+bank* find_account(vector<bank>& accounts, int acct_num) 
+{
+    for (auto& acc : accounts) 
+    {
+        if (acc.get_account_number() == acct_num) 
+        {
             return &acc;
         }
     }
@@ -193,12 +205,16 @@ bank* find_account(vector<bank>& accounts, int acct_num) {
 void bank :: load_accounts(vector<bank>& accounts) {
     ifstream infile("accounts.txt");
     int highest = 999;
-    while (infile.peek() != EOF) {
+    while (infile) {
         bank acc;
-        acc.load_from_file(infile);
-        if (acc.get_account_number() > highest)
-            highest = acc.get_account_number();
-        accounts.push_back(acc);
+        if (acc.load_from_file(infile)) 
+        {
+            if (acc.get_account_number() > highest)
+            {
+                highest = acc.get_account_number();
+            }
+            accounts.push_back(acc);
+        }
     }
     infile.close();
     bank::account_count = highest + 1;
@@ -211,22 +227,14 @@ int main()
     int selection;
     bank obj;
     vector<bank> accounts;
-
-    /*Load existing accounts from file
-    ifstream infile("accounts.txt");
-    while (infile.peek() != EOF) {
-        bank acc;
-        acc.load_from_file(infile);
-        accounts.push_back(acc);
-    }
-    infile.close();*/
+    
     bank :: load_accounts(accounts);
 
     cout << "Welcome to the Bank System\n";
     cout << "-----------------------------------\n";
     do 
     {
-        cout << "\n1) Open Account\n2) Deposit\n3) Withdraw\n4) Display\n5) Exit\nSelection: ";
+        cout << "\n1) Create Account\n2) Open Account##@@\n5) Exit\nSelection: ";
         cin >> selection;
 
         if (selection == 1) 
@@ -235,7 +243,7 @@ int main()
             new_acc.open_account();
             accounts.push_back(new_acc);
         } 
-        else if (selection >= 2 && selection <= 4) 
+        else if (selection == 2) 
         {
             int acct_num;
             cout << "Enter your account number: ";
@@ -246,12 +254,31 @@ int main()
                 cout << "Account not found.\n";
                 continue;
             }
+            int inacc_selection;
+            do 
+            {
+                acc->display_account();
+                cout << "1) Deposit Money\n2) Withdraw Money\n5) Exit Account\nSelection: ";
+                cin >> inacc_selection;
 
-            switch (selection) {
-                case 2: acc->deposit_money(); break;
-                case 3: acc->withdraw_money(); break;
-                case 4: acc->display_account(); break;
-            }
+                if(inacc_selection == 1) 
+                {
+                    acc->deposit_money();
+                }
+                else if (inacc_selection == 2) 
+                {
+                    acc->withdraw_money();
+                }
+                else if (inacc_selection == 5)
+                {
+                    cout << "Exiting account...\n";
+                }
+                else 
+                {
+                    cout << "Invalid selection.\n";
+                }
+            } while (inacc_selection != 5);
+
         }
         else if (selection == 5) 
         {

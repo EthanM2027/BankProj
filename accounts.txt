@@ -1,2 +1,6 @@
-1000|Ethan Melton|189 Brave View|s|2256.00|###END###
-1001|Evan Melton|123 Jeffery Dom St.|s|120000.000000|###END###
+1000|Ethan Melton|189 Brave View|s|2256.00
+###END###
+1001|Evan Melton|123 Jefery St.|s|123456432
+###END###
+1002|Emma Melton|123 Sunny St.|s|1234567
+###END###
