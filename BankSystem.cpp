@@ -17,10 +17,10 @@ using namespace std;
 class bank
 {
     char name[100], address[100], acc_type;
-    float amount, temp;
+    float temp;//amount, temp;
     int account_number;
     static int account_count; // Static variable to keep track of the number of accounts
-    string balance; //Is currently being used to put in the starting amount
+    string balance, amount; //Is currently being used to put in the starting amount
     public:
         void open_account();
         void deposit_money();
@@ -52,24 +52,34 @@ void bank :: open_account()
         acc_type = tolower(acc_type);
     } while (acc_type != 's' && acc_type != 'c');
 
-///////////////////////////////////////////////////////////////////////////////////////
-//This is still being crabby
-
-
     int count;
     do
     {
         count = 0;
-        //cin.ignore();
         cin.ignore(numeric_limits<streamsize>::max(), '\n'); // Clear leftover input
         cout << "Enter amount you would like to deposit: ";
         getline(cin, balance); 
 
         for(int i = 0; i < balance.size(); i++)
         {
-            if(balance[i] >= 'a' && balance[i] <= 'z')
+            if(balance[i] >= 'a' && balance[i] <= 'z' && balance[i] >= 'A' && balance[i] <= 'Z')
             {
                 cout << "Invalid Input\n";
+                break;
+            }
+            else if(balance[i] == '.' && count > 0)
+            {
+                cout << "Invalid Input\n";
+                break;
+            }
+            else if(balance[i] == '.')
+            {
+                count += 1;
+            }
+            else if(balance[i] < '0' || balance[i] > '9')
+            {
+                cout << "Invalid Input\n";
+                break;
             }
             else
             {
@@ -77,7 +87,6 @@ void bank :: open_account()
             }
         }
     } while (count != balance.size());
-///////////////////////////////////////////////////////////////////////////////////////////////
 
     account_number = account_count++;
     cout << "Your account number is: " << account_number << endl;
@@ -86,33 +95,109 @@ void bank :: open_account()
 
 }
 
-void bank :: withdraw_money()
+void bank :: withdraw_money() 
 {
-    amount = 0.0;
-    cout << "Enter amount to withdraw: ";
-    cin >> amount;
+    string amount;
+    bool valid = false;
+
+    do 
+    {
+        valid = true;
+        int decimal_count = 0;
+
+        cin.ignore(numeric_limits<streamsize>::max(), '\n'); // Clear leftover input
+        cout << "Enter amount you would like to withdraw: ";
+        getline(cin, amount);
+
+        for (char ch : amount) 
+        {
+            if (isalpha(ch)) 
+            {
+                valid = false;
+                cout << "Invalid input: letters are not allowed.\n";
+                break;
+            }
+            else if (ch == '.') 
+            {
+                decimal_count++;
+                if (decimal_count > 1) 
+                {
+                    valid = false;
+                    cout << "Invalid input: more than one decimal point.\n";
+                    break;
+                }
+            } 
+            else if (!isdigit(ch) && ch != '.') 
+            {
+                valid = false;
+                cout << "Invalid input: special characters are not allowed.\n";
+                break;
+            }
+        }
+
+    } while (!valid);
+
     temp = stof(balance);
-    
+    float withdraw_amount = stof(amount);
+
     ostringstream stream;
-    stream << fixed << setprecision(2) << (temp - amount);
+    stream << fixed << setprecision(2) << (temp - withdraw_amount);
     balance = stream.str();
 
-    cout << "Now total amount left: " << balance;
+    cout << "Now total amount left: " << balance << endl;
 }
+
 
 void bank :: deposit_money()
 {
-    amount = 0.0;
-    cout << "Enter deposit amount: ";
-    cin >> amount;
-    temp = stof(balance);
+    string amount;
+    bool valid = false;
 
+    do 
+    {
+        valid = true;
+        int decimal_count = 0;
+
+        cin.ignore(numeric_limits<streamsize>::max(), '\n'); // Clear leftover input
+        cout << "Enter amount you would like to deposit: ";
+        getline(cin, amount);
+
+        for (char ch : amount) 
+        {
+            if (isalpha(ch)) 
+            {
+                valid = false;
+                cout << "Invalid input: letters are not allowed.\n";
+                break;
+            }
+            else if (ch == '.') 
+            {
+                decimal_count++;
+                if (decimal_count > 1) 
+                {
+                    valid = false;
+                    cout << "Invalid input: more than one decimal point.\n";
+                    break;
+                }
+            } 
+            else if (!isdigit(ch) && ch != '.') 
+            {
+                valid = false;
+                cout << "Invalid input: special characters are not allowed.\n";
+                break;
+            }
+        }
+
+    } while (!valid);
+
+    temp = stof(balance);
+    float deposit_amount = stof(amount);
 
     ostringstream stream;
-    stream << fixed << setprecision(2) << (temp + amount);
+    stream << fixed << setprecision(2) << (temp + deposit_amount);
     balance = stream.str();
 
-    cout << "New total amount: " << balance;
+    cout << "Now total amount left: " << balance << endl;
 }
 void bank :: display_account()
 {
@@ -234,7 +319,7 @@ int main()
     cout << "-----------------------------------\n";
     do 
     {
-        cout << "\n1) Create Account\n2) Open Account##@@\n5) Exit\nSelection: ";
+        cout << "\n1) Create Account\n2) Open Account\n5) Exit\nSelection: ";
         cin >> selection;
 
         if (selection == 1) 

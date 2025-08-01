@@ -1,4 +1,4 @@
-1000|Ethan Melton|189 Brave View|s|2256.00
+1000|Ethan Melton|189 Brave View|s|2268.40
 ###END###
 1001|Evan Melton|123 Jefery St.|s|123456432
 ###END###
