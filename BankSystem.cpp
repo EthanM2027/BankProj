@@ -162,7 +162,7 @@ void bank :: deposit_money()
         cout << "Enter amount you would like to deposit: ";
         getline(cin, amount);
 
-        for (char ch : amount) 
+        for (char ch : amount) //this is basicly like cheacking for each character in the string whicout having to index it: ch[i]
         {
             if (isalpha(ch)) 
             {
