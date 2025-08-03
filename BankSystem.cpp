@@ -17,17 +17,18 @@ using namespace std;
 class bank
 {
     char name[100], address[100], acc_type;
-    float amount, temp;
+    float temp;//amount, temp;
     int account_number;
     static int account_count; // Static variable to keep track of the number of accounts
-    string balance; //Is currently being used to put in the starting amount
+    string balance, amount; //Is currently being used to put in the starting amount
     public:
         void open_account();
         void deposit_money();
         void withdraw_money();
         void display_account();
         void save_to_file(ofstream& outfile) const;
-        void load_from_file(ifstream& infile);
+        bool load_from_file(ifstream& infile);
+        static void load_accounts(vector<bank>& accounts);
         int get_account_number() const { return account_number; }
 };
 
@@ -51,24 +52,34 @@ void bank :: open_account()
         acc_type = tolower(acc_type);
     } while (acc_type != 's' && acc_type != 'c');
 
-///////////////////////////////////////////////////////////////////////////////////////
-//This is still being crabby
-
-
     int count;
     do
     {
         count = 0;
-        //cin.ignore();
         cin.ignore(numeric_limits<streamsize>::max(), '\n'); // Clear leftover input
         cout << "Enter amount you would like to deposit: ";
         getline(cin, balance); 
 
         for(int i = 0; i < balance.size(); i++)
         {
-            if(balance[i] >= 'a' && balance[i] <= 'z')
+            if(balance[i] >= 'a' && balance[i] <= 'z' && balance[i] >= 'A' && balance[i] <= 'Z')
             {
                 cout << "Invalid Input\n";
+                break;
+            }
+            else if(balance[i] == '.' && count > 0)
+            {
+                cout << "Invalid Input\n";
+                break;
+            }
+            else if(balance[i] == '.')
+            {
+                count += 1;
+            }
+            else if(balance[i] < '0' || balance[i] > '9')
+            {
+                cout << "Invalid Input\n";
+                break;
             }
             else
             {
@@ -76,7 +87,6 @@ void bank :: open_account()
             }
         }
     } while (count != balance.size());
-///////////////////////////////////////////////////////////////////////////////////////////////
 
     account_number = account_count++;
     cout << "Your account number is: " << account_number << endl;
@@ -84,21 +94,110 @@ void bank :: open_account()
     cout << "Your account has been created \n";
 
 }
-void bank :: deposit_money()
-{
-    amount = 0.0;
-    cout << "Enter deposit amount: ";
-    cin >> amount;
-    temp = stof(balance);
 
+void bank :: withdraw_money() 
+{
+    string amount;
+    bool valid = false;
+
+    do 
+    {
+        valid = true;
+        int decimal_count = 0;
+
+        cin.ignore(numeric_limits<streamsize>::max(), '\n'); // Clear leftover input
+        cout << "Enter amount you would like to withdraw: ";
+        getline(cin, amount);
+
+        for (char ch : amount) 
+        {
+            if (isalpha(ch)) 
+            {
+                valid = false;
+                cout << "Invalid input: letters are not allowed.\n";
+                break;
+            }
+            else if (ch == '.') 
+            {
+                decimal_count++;
+                if (decimal_count > 1) 
+                {
+                    valid = false;
+                    cout << "Invalid input: more than one decimal point.\n";
+                    break;
+                }
+            } 
+            else if (!isdigit(ch) && ch != '.') 
+            {
+                valid = false;
+                cout << "Invalid input: special characters are not allowed.\n";
+                break;
+            }
+        }
+
+    } while (!valid);
+
+    temp = stof(balance);
+    float withdraw_amount = stof(amount);
 
     ostringstream stream;
-    stream << fixed << setprecision(2) << (temp + amount);
+    stream << fixed << setprecision(2) << (temp - withdraw_amount);
     balance = stream.str();
 
-    //balance =  to_string(temp + amount);
-    
-    cout << "New total amount: " << balance;
+    cout << "Now total amount left: " << balance << endl;
+}
+
+
+void bank :: deposit_money()
+{
+    string amount;
+    bool valid = false;
+
+    do 
+    {
+        valid = true;
+        int decimal_count = 0;
+
+        cin.ignore(numeric_limits<streamsize>::max(), '\n'); // Clear leftover input
+        cout << "Enter amount you would like to deposit: ";
+        getline(cin, amount);
+
+        for (char ch : amount) //this is basicly like cheacking for each character in the string whicout having to index it: ch[i]
+        {
+            if (isalpha(ch)) 
+            {
+                valid = false;
+                cout << "Invalid input: letters are not allowed.\n";
+                break;
+            }
+            else if (ch == '.') 
+            {
+                decimal_count++;
+                if (decimal_count > 1) 
+                {
+                    valid = false;
+                    cout << "Invalid input: more than one decimal point.\n";
+                    break;
+                }
+            } 
+            else if (!isdigit(ch) && ch != '.') 
+            {
+                valid = false;
+                cout << "Invalid input: special characters are not allowed.\n";
+                break;
+            }
+        }
+
+    } while (!valid);
+
+    temp = stof(balance);
+    float deposit_amount = stof(amount);
+
+    ostringstream stream;
+    stream << fixed << setprecision(2) << (temp + deposit_amount);
+    balance = stream.str();
+
+    cout << "Now total amount left: " << balance << endl;
 }
 void bank :: display_account()
 {
@@ -117,19 +216,7 @@ void bank :: display_account()
     cout << "Amount balance: \t" << balance << endl;
     cout << "#############################################" << endl;
 }
-void bank :: withdraw_money()
-{
-    amount = 0.0;
-    cout << "\nWithdraw: \n";
-    cout << "Enter amount to withdraw: ";
-    cin >> amount;
-    temp = stof(balance);
-    
-    cout << fixed << setprecision(2); // Set formatting for float
-    balance =  to_string(temp - amount);
 
-    cout << "Now total amount left: " << balance;
-}
 
 void bank :: save_to_file(ofstream& outfile) const 
 {
@@ -137,17 +224,17 @@ void bank :: save_to_file(ofstream& outfile) const
             << name << '|'
             << address << '|'
             << acc_type << '|'
-            << balance << '|';
+            << balance << '\n';
     outfile << "###END###\n"; // End of record marker
     // Using '|' as a delimiter for fields
 }
 
-void bank :: load_from_file(ifstream& infile) 
+bool bank :: load_from_file(ifstream& infile) 
 {
     string line;
     getline(infile, line);
 
-    if(line.empty() || line == "###END###") return; // Skip empty lines or end markers
+    if(line.empty() || line == "###END###") return false; // Skip empty lines or end markers
     
     stringstream ss(line);
     string token;
@@ -168,49 +255,71 @@ void bank :: load_from_file(ifstream& infile)
 
     // Read account type
     getline(ss, token, '|');
-    acc_type = token[0]; // Assuming single character for account type
+    if (!token.empty()) 
+    {
+        acc_type = token[0];
+    } 
+    else 
+    {
+        acc_type = ' '; // Or some default value
+    }
 
     // Read balance
     getline(ss, balance, '|');
 
     // Consume the END marker
     getline(infile, line);
+
+    return true; // Successfully loaded the account
 }
 
 // Function to find an account by account number
 // Returns a pointer to the account if found, otherwise returns nullptr
-bank* find_account(vector<bank>& accounts, int acct_num) {
-    for (auto& acc : accounts) {
-        if (acc.get_account_number() == acct_num) {
+bank* find_account(vector<bank>& accounts, int acct_num) 
+{
+    for (auto& acc : accounts) 
+    {
+        if (acc.get_account_number() == acct_num) 
+        {
             return &acc;
         }
     }
     return nullptr;
 }
 
+void bank :: load_accounts(vector<bank>& accounts) {
+    ifstream infile("accounts.txt");
+    int highest = 999;
+    while (infile) {
+        bank acc;
+        if (acc.load_from_file(infile)) 
+        {
+            if (acc.get_account_number() > highest)
+            {
+                highest = acc.get_account_number();
+            }
+            accounts.push_back(acc);
+        }
+    }
+    infile.close();
+    bank::account_count = highest + 1;
+}
+
 int bank::account_count = 1000; // starting account number
 
 int main()
 {
-    cout << "Branch for saving info to a file\n";
     int selection;
     bank obj;
     vector<bank> accounts;
-
-    // Load existing accounts from file
-    ifstream infile("accounts.txt");
-    while (infile.peek() != EOF) {
-        bank acc;
-        acc.load_from_file(infile);
-        accounts.push_back(acc);
-    }
-    infile.close();
+    
+    bank :: load_accounts(accounts);
 
     cout << "Welcome to the Bank System\n";
     cout << "-----------------------------------\n";
     do 
     {
-        cout << "\n1) Open Account\n2) Deposit\n3) Withdraw\n4) Display\n5) Exit\nSelection: ";
+        cout << "\n1) Create Account\n2) Open Account\n5) Exit\nSelection: ";
         cin >> selection;
 
         if (selection == 1) 
@@ -219,7 +328,7 @@ int main()
             new_acc.open_account();
             accounts.push_back(new_acc);
         } 
-        else if (selection >= 2 && selection <= 4) 
+        else if (selection == 2) 
         {
             int acct_num;
             cout << "Enter your account number: ";
@@ -230,12 +339,31 @@ int main()
                 cout << "Account not found.\n";
                 continue;
             }
+            int inacc_selection;
+            do 
+            {
+                acc->display_account();
+                cout << "1) Deposit Money\n2) Withdraw Money\n5) Exit Account\nSelection: ";
+                cin >> inacc_selection;
 
-            switch (selection) {
-                case 2: acc->deposit_money(); break;
-                case 3: acc->withdraw_money(); break;
-                case 4: acc->display_account(); break;
-            }
+                if(inacc_selection == 1) 
+                {
+                    acc->deposit_money();
+                }
+                else if (inacc_selection == 2) 
+                {
+                    acc->withdraw_money();
+                }
+                else if (inacc_selection == 5)
+                {
+                    cout << "Exiting account...\n";
+                }
+                else 
+                {
+                    cout << "Invalid selection.\n";
+                }
+            } while (inacc_selection != 5);
+
         }
         else if (selection == 5) 
         {
