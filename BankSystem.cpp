@@ -33,7 +33,7 @@ class bank
 
         int get_account_num() const { return account_count; }
         
-
+        //Needs to be run as a loop in py to read in any existing accounts
         string get_user_info() const
         {
             ostringstream info;
@@ -43,6 +43,14 @@ class bank
                  << "Account Type: " << (acc_type == 's' ? "Savings" : "Checking") << "\n"
                  << "Balance: " << balance;
             return info.str();
+        }
+
+        string out_user() const 
+        {
+            ostringstream out;
+            out << account_number << "|" << name << "|" << address << "|" << acc_type << "|" << balance << "\n";
+            out << "###END###\n"; // End of account marker
+            return out.str();
         }
         
         bool deposit(const string& amount)
@@ -65,12 +73,7 @@ class bank
             return true;
         }
 
-        string serialize() const 
-        {
-            ostringstream out;
-            out << account_number << "|" << name << "|" << address << "|" << acc_type << "|" << balance << "\n";
-            return out.str();
-        }
+        
 
 
     private:
@@ -93,11 +96,12 @@ class bank
             }
             return true;
         }
-        static string toFixed(float value) {
-        ostringstream stream;
-        stream << fixed << setprecision(2) << value;
-        return stream.str();
-    }
+        static string toFixed(float value) 
+        {
+            ostringstream stream;
+            stream << fixed << setprecision(2) << value;
+            return stream.str();
+        }
 };
 
 int bank::account_count = 1000;
@@ -138,6 +142,8 @@ extern "C"
     }
 
     // Get account info
+    //Only gets the account info of the first account with the given account number
+    //Needs to have a search function to find the account in py file
     __declspec(dllexport) const char* get_account_info(int account_number) 
     {
         for (auto& acc : accounts) {
@@ -156,7 +162,7 @@ extern "C"
         if (!outfile.is_open()) return;
 
         for (const auto& acc : accounts) {
-            outfile << acc.serialize();
+            outfile << acc.out_user();
         }
 
         outfile.close();
