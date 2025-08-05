@@ -6,6 +6,7 @@
 #include <sstream>  // for ostringstream
 #include <limits> // for numeric_limits
 #include <vector>
+#include <fstream>
 
 
 // This is the branch file for the Bank System project
@@ -31,6 +32,7 @@ class bank
         }
 
         int get_account_num() const { return account_count; }
+        
 
         string get_user_info() const
         {
@@ -62,6 +64,14 @@ class bank
             balance = toFixed(current);
             return true;
         }
+
+        string serialize() const 
+        {
+            ostringstream out;
+            out << account_number << "|" << name << "|" << address << "|" << acc_type << "|" << balance << "\n";
+            return out.str();
+        }
+
 
     private:
         static bool isValidAmount(const string& amt) 
@@ -139,5 +149,18 @@ extern "C"
         }
         return "Account not found.";
     }
+
+    __declspec(dllexport) void save_all_accounts() 
+    {
+        ofstream outfile("accounts.txt");
+        if (!outfile.is_open()) return;
+
+        for (const auto& acc : accounts) {
+            outfile << acc.serialize();
+        }
+
+        outfile.close();
+    }
+
 
 }
