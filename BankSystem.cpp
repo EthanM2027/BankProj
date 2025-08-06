@@ -52,8 +52,7 @@ class bank
         string out_user() const 
         {
             ostringstream out;
-            out << account_number << "|" << name << "|" << address << "|" << acc_type << "|" << balance << "\n";
-            out << "###END###\n"; // End of account marker
+            out << account_number << "," << name << "," << address << "," << acc_type << "," << balance << "\n";
             return out.str();
         }
         
@@ -126,7 +125,8 @@ extern "C"
     // Deposit money into account
     __declspec(dllexport) bool deposit_money(int account_number, const char* amount) 
     {
-        for (auto& acc : accounts) {
+        for (auto& acc : accounts) 
+        {
             if (acc.get_account_num() == account_number)
             {
                 return acc.deposit(amount);
@@ -138,7 +138,8 @@ extern "C"
     // Withdraw money from account
     __declspec(dllexport) bool withdraw_money(int account_number, const char* amount) 
     {
-        for (auto& acc : accounts) {
+        for (auto& acc : accounts)
+        {
             if (acc.get_account_num() == account_number)
             {
                 return acc.withdraw(amount);
@@ -152,8 +153,10 @@ extern "C"
     //Needs to have a search function to find the account in py file
     __declspec(dllexport) const char* get_account_info(int account_number) 
     {
-        for (auto& acc : accounts) {
-            if (acc.get_account_num() == account_number) {
+        for (auto& acc : accounts) 
+        {
+            if (acc.get_account_num() == account_number) 
+            {
                 static string info;
                 info = acc.get_user_info();
                 return info.c_str();
@@ -164,10 +167,11 @@ extern "C"
 
     __declspec(dllexport) void save_all_accounts() 
     {
-        ofstream outfile("accounts.txt");
+        ofstream outfile("accounts.csv");
         if (!outfile.is_open()) return;
 
-        for (const auto& acc : accounts) {
+        for (const auto& acc : accounts)
+        {
             outfile << acc.out_user();
         }
 
@@ -176,29 +180,31 @@ extern "C"
 
     __declspec(dllexport) void load_all_accounts() 
     {
-        ifstream infile("accounts.txt");
+        ifstream infile("accounts.csv");
         if (!infile.is_open()) return;
 
         accounts.clear();
         string line;
-        while (getline(infile, line)) {
+        while (getline(infile, line)) 
+        {
             if (line.empty()) continue;
 
             stringstream ss(line);
             string acc_num_str, name, address, type_str, balance;
 
-            getline(ss, acc_num_str, '|');
-            getline(ss, name, '|');
-            getline(ss, address, '|');
-            getline(ss, type_str, '|');
-            getline(ss, balance, '|');
+            getline(ss, acc_num_str, ',');
+            getline(ss, name, ',');
+            getline(ss, address, ',');
+            getline(ss, type_str, ',');
+            getline(ss, balance, ',');
 
             char acc_type = type_str.empty() ? 's' : type_str[0];
             accounts.emplace_back(name, address, acc_type, balance);
 
             // Update account count correctly
             int acc_num = stoi(acc_num_str);
-            if (acc_num >= bank::account_count) {
+            if (acc_num >= bank::account_count) 
+            {
                 bank::account_count = acc_num + 1;
             }
         }
@@ -206,9 +212,11 @@ extern "C"
     }
 
 
-    __declspec(dllexport) bool account_exists(int account_number) {
+    __declspec(dllexport) bool account_exists(int account_number) 
+    {
         for (auto& acc : accounts) {
-            if (acc.get_account_num() == account_number) {
+            if (acc.get_account_num() == account_number) 
+            {
                 return true;
             }
         }
