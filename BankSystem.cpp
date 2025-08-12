@@ -4,13 +4,11 @@
 #include <cstring>
 #include <iomanip>
 #include <sstream>  // for ostringstream
-#include <limits> // for numeric_limits
+#include <limits>   // for numeric_limits
 #include <vector>
 #include <fstream>
 
-
 // This is the branch file for the Bank System project
-
 
 using namespace std;
 
@@ -114,7 +112,6 @@ static vector<bank> accounts;
 
 extern "C" 
 {
-
     // Create account and returns the  account number
     __declspec(dllexport) int create_account(const char* name, const char* address, char type, const char* balance) 
     {
